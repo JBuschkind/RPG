@@ -45,7 +45,7 @@ public class SQLHelper {
 	 */
 	public void execute(String sqlQuery) {
 		try {
-			//System.out.println("SQL: " + sqlQuery);
+			System.out.println("SQL: " + sqlQuery);
 			// führt einen SQL-Befehl aus, wobei keine Werte zurückgegeben werden
 			this.con.createStatement().execute(sqlQuery);
 		} catch (SQLException e) {

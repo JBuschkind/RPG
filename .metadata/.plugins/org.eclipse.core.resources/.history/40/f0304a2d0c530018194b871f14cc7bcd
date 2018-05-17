@@ -1,0 +1,707 @@
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.DefaultListModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTabbedPane;
+import javax.swing.UIManager;
+
+import net.miginfocom.swing.MigLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import javax.swing.JList;
+import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import com.sun.glass.events.KeyEvent;
+
+import java.awt.SystemColor;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BoxLayout;
+import javax.swing.SpringLayout;
+import javax.swing.JEditorPane;
+import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
+
+import java.awt.GridLayout;
+import javax.swing.JTextArea;
+import javax.swing.DropMode;
+import javax.swing.ImageIcon;
+import javax.swing.InputMap;
+
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+public class Spieler extends JFrame {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8484086595395485269L; //automatisch generiert
+
+	private JPanel contentPane; //global
+
+	JLabel lblStamm = new JLabel("-"); //global
+	JLabel lblKlasse = new JLabel("-"); //global
+	JLabel lblBeruf = new JLabel("-"); //global
+	JLabel lblruest = new JLabel("-"); //global
+	
+	JList listWaffen = new JList(); //global	
+	JList listfaehigkeiten = new JList(); //global
+	JList listCommands = new JList(); //global
+	
+	JEditorPane editorPaneMain = new JEditorPane(); //glpobal
+	JTextPane textPaneFight = new JTextPane();
+
+	JEditorPane editorPaneFight = new JEditorPane();
+	JTextField txtNewPlayerName = new JTextField(); //global
+	
+	JLabel lblEnemy_Img = new JLabel("");
+	
+	JTextPane textPaneMain = new JTextPane(); //global
+	
+	JComboBox<String> comboBoxSpieler = new JComboBox<String>(); //global
+	JComboBox comboNewPlayerBeruf = new JComboBox(); //gobal
+	JComboBox comboNewPlayerStamm = new JComboBox(); //global
+	JComboBox comboNewPlayerKlasse = new JComboBox(); //global
+	JComboBox comboPlayerDelete = new JComboBox(); //global
+	JComboBox comboBoxLogin = new JComboBox(); //global
+	
+	JPanel panel_4 = new JPanel();
+	JPanel panel_5 = new JPanel();
+	JPanel panel_6 = new JPanel();
+	JPanel panel_7 = new JPanel();
+	
+	JButton btnLcshenBesttigen = new JButton("L\u00F6schen Best\u00E4tigen"); //global
+	
+	ImageIcon image; //global
+
+	int conditionEditorMain = JComponent.WHEN_FOCUSED;
+	InputMap iMapEditorMain = editorPaneMain.getInputMap(conditionEditorMain);
+	ActionMap aMapEditorMain = editorPaneMain.getActionMap();
+	String enter = "enter";	
+	
+	int conditionEditorFight = JComponent.WHEN_FOCUSED;
+	InputMap iMapEditorFight = editorPaneFight.getInputMap(conditionEditorFight);
+	ActionMap aMapEditorFight = editorPaneFight.getActionMap();
+	
+	
+	ArrayList<Map<String, String>> newPlayerInfoBeruf;
+	ArrayList<Map<String, String>> newPlayerInfoKlasse;
+	ArrayList<Map<String, String>> newPlayerInfoStamm;
+	ArrayList<Map<String, String>> daten;
+	ArrayList<Map<String, String>> PlayerDeleteInfo;
+	ArrayList<Map<String, String>> PlayerLocation;
+	ArrayList<Map<String, String>> Locations;
+	ArrayList<Map<String, String>> Fall;
+	
+	Random r = new Random();
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {      //automatisch generiert
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {							//Layout Einstellung vor dem ersten Frame
+					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); //Layout Einstellung
+					
+					Spieler frame = new Spieler(); //Frame erstellen; Name egal
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public Spieler() {      //automatisch generiert
+		
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 584, 432);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(new BorderLayout(0, 0));
+		
+		image = new ImageIcon("C://Users//busch//Desktop//Placeholder.jpg");
+		lblEnemy_Img.setIcon(image);
+		
+		SQLHelper db = VerbindungHerstellen();
+		
+		db.close();
+		
+		JTabbedPane tabbedPaneMain = new JTabbedPane(JTabbedPane.TOP);
+ 		contentPane.add(tabbedPaneMain, BorderLayout.CENTER);
+		btnLcshenBesttigen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				btnLcshenBesttigen.setEnabled(false);
+				SQLHelper db = VerbindungHerstellen();
+				
+				db.execute("DELETE FROM `m_spieler` WHERE `m_spieler`.`ID` = " + (PlayerDeleteInfo.get(comboPlayerDelete.getSelectedIndex()).get("ID")));
+				
+				db.close();
+			}
+		});
+		
+		btnLcshenBesttigen.setEnabled(false);
+		
+		JTabbedPane tabbedPaneInfos = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPaneMain.addTab("   Informationen", null, tabbedPaneInfos, null);
+		
+		JPanel panelSpieler = new JPanel();
+		tabbedPaneInfos.addTab("   Spielerinformationen   ", null, panelSpieler, null);
+		panelSpieler.setLayout(new MigLayout("", "[39.00][20.00][137.00]", "[][][][][][][][15.00][21.00]"));
+		
+		JLabel lblSpieler = new JLabel("Spieler:");
+		panelSpieler.add(lblSpieler, "cell 0 0,alignx trailing");
+		comboBoxSpieler.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {				
+				SQLHelper db = VerbindungHerstellen();
+				
+				// AusgewÃ¤hlte Spieler
+				String name = (String) comboBoxSpieler.getSelectedItem(); 
+				
+				// Suche anhand des Namens die ID des Spielers
+				ArrayList<Map<String, String>> spielerID = db.queryToMap(
+						"SELECT ID FROM m_spieler WHERE Name = '" + name + "'");
+			
+				// Lese die Eigenschaften des Spielers aus
+				ArrayList<Map<String, String>> spieler = db.queryToMap(
+						
+  // Die Spalten, die wir mÃ¶chten
+  "SELECT stamm.Stamm, klassen.Klasse, beruf.Beruf, ruest_klasse.Ruest, waffen.Waffe "
+						
+  // Quelltabelle
++ "FROM m_spieler "
+
+  // Tabelle stamm an m_spieler anhÃ¤ngen, dem FremdschlÃ¼ssel entsprechend sortieren
++ "INNER JOIN stamm ON m_spieler.F_Stamm = stamm.ID "
+
+  // klassen an m_spieler anhÃ¤ngen und sortieren
++ "INNER JOIN klassen ON m_spieler.F_Klasse = klassen.ID "
+
+  // beruf an m_spieler anhÃ¤ngen und sortieren
++ "INNER JOIN beruf ON m_spieler.F_Beruf = beruf.ID "
+
+
++ "INNER JOIN ruest_klasse ON klassen.F_rüst_klasse = ruest_klasse.ID "
+
+
++ "INNER JOIN l_waffe_klasse ON klassen.ID = l_waffe_klasse.F_Klasse "
+
+
++ "INNER JOIN waffen ON l_waffe_klasse.F_Waffe = waffen.ID "
+
+  // Bedingung: ID des Spielers entspricht der ID, des ausgewÃ¤hlten Spielers
++ "WHERE m_spieler.ID = " + (spielerID.get(0).get("ID")));
+				
+				ArrayList<Map<String, String>> faehigkeiten = db.queryToMap(
+						
+  "SELECT faehigkeiten.Fähigkeit FROM m_spieler "
+						
++ "INNER JOIN faehigkeiten ON m_spieler.F_Klasse = faehigkeiten.F_Klasse "		
+
++ "WHERE m_spieler.ID = " + (spielerID.get(0).get("ID")));
+				
+				
+//				// Daten auslesen
+				String stamm = spieler.get(0).get("Stamm");
+				String beruf = spieler.get(0).get("Beruf");
+				String klasse = spieler.get(0).get("Klasse");
+				String ruest = spieler.get(0).get("ruest");
+				
+				DefaultListModel waffen = new DefaultListModel();
+				
+				for(Map<String, String> element : spieler){		
+					waffen.addElement(element.get("Waffe"));
+				}
+				
+				DefaultListModel faehigkeitenlist = new DefaultListModel();
+				
+				for(Map<String, String> element : faehigkeiten){		
+					faehigkeitenlist.addElement(element.get("Fähigkeit"));
+				}
+				
+				// Daten anzeigen
+				lblStamm.setText(stamm);
+				lblBeruf.setText(beruf);
+				lblKlasse.setText(klasse);
+				lblruest.setText(ruest);
+				listWaffen.setModel(waffen);
+				listfaehigkeiten.setModel(faehigkeitenlist);
+				
+				// Verbindung schlieÃŸen
+				db.close();
+			}
+		});
+		
+		
+		panelSpieler.add(comboBoxSpieler, "cell 2 0,growx");
+		
+		JLabel lblStamminfo = new JLabel("Stamm:");
+		panelSpieler.add(lblStamminfo, "cell 0 2");
+		
+		panelSpieler.add(lblStamm, "cell 2 2");
+		
+		JLabel lblKlasseninfo = new JLabel("Klasse:");
+		panelSpieler.add(lblKlasseninfo, "cell 0 3");
+		
+		panelSpieler.add(lblKlasse, "cell 2 3");
+		
+		JLabel lblBerufinfo = new JLabel("Beruf:");
+		panelSpieler.add(lblBerufinfo, "cell 0 4");
+		
+		panelSpieler.add(lblBeruf, "cell 2 4");
+		
+		JLabel lblRstungsklasseinfo = new JLabel("R\u00FCstungsklasse:");
+		panelSpieler.add(lblRstungsklasseinfo, "cell 0 6");
+		
+		panelSpieler.add(lblruest, "cell 2 6");
+		
+		JLabel lblWaffen = new JLabel("Waffen:");
+		panelSpieler.add(lblWaffen, "cell 0 7");
+		listWaffen.setBorder(new LineBorder(SystemColor.windowBorder));
+		
+		
+		panelSpieler.add(listWaffen, "cell 2 7,grow");
+		
+		JLabel lblFhigkeiteninfo = new JLabel("F\u00E4higkeiten:");
+		panelSpieler.add(lblFhigkeiteninfo, "cell 0 8");
+		listfaehigkeiten.setBorder(new LineBorder(SystemColor.windowBorder));
+		
+		
+		panelSpieler.add(listfaehigkeiten, "cell 2 8,grow");
+		
+		JPanel panel_1 = new JPanel();
+		tabbedPaneInfos.addTab("   Spieler verwalten   ", null, panel_1, null);
+		panel_1.setLayout(new MigLayout("", "[50.00][7.00][155.00][][grow][][][151.00]", "[][][22.00][][][][]"));
+		
+		JLabel lblNewPlayerNameInfo = new JLabel("Name:");
+		panel_1.add(lblNewPlayerNameInfo, "cell 0 1");
+		
+		
+		panel_1.add(txtNewPlayerName, "cell 2 1,growx");
+		txtNewPlayerName.setColumns(10);
+		
+		JLabel lblSpieler_1 = new JLabel("Spieler:");
+		panel_1.add(lblSpieler_1, "cell 6 1,alignx trailing");
+		
+		
+		panel_1.add(comboPlayerDelete, "cell 7 1,growx");
+		
+		JLabel lblNewPlayerStammInfo = new JLabel("Stamm:");
+		panel_1.add(lblNewPlayerStammInfo, "cell 0 2");
+		
+		
+		panel_1.add(comboNewPlayerStamm, "cell 2 2,growx");
+		
+		JButton btnLschen = new JButton("L\u00F6schen");
+		btnLschen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+				if(comboPlayerDelete.getSelectedIndex() != -1){
+					btnLcshenBesttigen.setEnabled(true);
+				}
+			}
+		});
+		panel_1.add(btnLschen, "cell 7 2");
+		
+		JLabel lblNewPlayerKlasseInfo = new JLabel("Klasse:");
+		panel_1.add(lblNewPlayerKlasseInfo, "cell 0 3");
+		
+		
+		panel_1.add(comboNewPlayerKlasse, "cell 2 3,growx");
+		
+		
+		panel_1.add(btnLcshenBesttigen, "cell 7 3");
+		
+		JLabel lblNewPlayerBerufInfo = new JLabel("Beruf:");
+		panel_1.add(lblNewPlayerBerufInfo, "cell 0 4");
+		
+		
+		panel_1.add(comboNewPlayerBeruf, "cell 2 4,growx");
+		
+		JButton btnHinzufgen = new JButton("Hinzuf\u00FCgen");
+		
+		
+		btnHinzufgen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+				if( (!"".equals(txtNewPlayerName.getText())) && (comboNewPlayerStamm.getSelectedIndex() >= 0 ) && (comboNewPlayerBeruf.getSelectedIndex() >= 0) && (comboNewPlayerKlasse.getSelectedIndex() >= 0)){						
+					
+					SQLHelper db = VerbindungHerstellen();
+					
+					// INSERT INTO `m_spieler` 
+					//(`ID`, `Name`, `F_Stamm`, `F_Klasse`, `F_Beruf`, `Level`, `Erfahrung`, `city`, `fight`) VALUES 
+					//(NULL, '', '', '', '', '1', '1', '0', '0')
+					db.execute("INSERT INTO `m_spieler` (`ID`, `Name`, `F_Stamm`, `F_Klasse`, `F_Beruf`, `Level`, `Erfahrung`) "
+											+ "VALUES (NULL, '" 
+											+ txtNewPlayerName.getText() + "', '" 
+											+ newPlayerInfoStamm.get(comboNewPlayerStamm.getSelectedIndex()).get("ID") + "', '"
+											+ newPlayerInfoKlasse.get(comboNewPlayerKlasse.getSelectedIndex()).get("ID") + "', '"
+											+ newPlayerInfoBeruf.get(comboNewPlayerBeruf.getSelectedIndex()).get("ID") + "', '1', '1')");
+					/*TODO
+						STÜRTZT AB WENN SPIELERLISTE NEU GELADEN WIRD
+					*/
+					//LadeSpieler();	
+					db.close();
+				}
+			}
+		});	
+		panel_1.add(btnHinzufgen, "cell 2 6");
+		
+		
+		
+		tabbedPaneInfos.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent ce) {
+	            System.out.println("Daten werden aktualisiert ... ");			//DEBUG SPÄTER ENTFERNEN//
+	            CharEditorVorbereiten();
+	            System.out.println("Character Editor geladen");					//DEBUG SPÄTER ENTFERNEN//
+	           // LadeSpieler();	
+	            System.out.println("Spielerbögen geladen");						//DEBUG SPÄTER ENTFERNEN//
+	            System.out.println("");											//DEBUG SPÄTER ENTFERNEN//
+	         }			
+		});
+		
+		JPanel panel_2 = new JPanel();
+		tabbedPaneInfos.addTab("   Lexikon   ", null, panel_2, null);
+		
+		JPanel panel = new JPanel();
+		tabbedPaneMain.addTab("   Spiel   ", null, panel, null);
+		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+		
+		JTabbedPane tabbedPaneGame = new JTabbedPane(JTabbedPane.TOP);
+		panel.add(tabbedPaneGame);
+		
+		JPanel panel_15 = new JPanel();
+		tabbedPaneGame.addTab("   Login   ", null, panel_15, null);
+		panel_15.setLayout(new MigLayout("", "[72.00][115.00]", "[12.00][][]"));
+		
+		JLabel lblSpielernauswhlen = new JLabel("Spieler\r\n\r\n\r");
+		panel_15.add(lblSpielernauswhlen, "cell 0 0,alignx center,aligny bottom");
+		
+		panel_15.add(comboBoxLogin, "cell 1 0 1 2,growx");
+		
+		JLabel lblAuswhlen = new JLabel("ausw\u00E4hlen");
+		panel_15.add(lblAuswhlen, "cell 0 1,alignx center,aligny top");
+		
+		JButton btnEinloggen = new JButton("Einloggen");
+		btnEinloggen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				tabbedPaneGame.setEnabledAt(2, true);
+				tabbedPaneGame.setEnabledAt(3, true);
+				tabbedPaneGame.setEnabledAt(4, true);
+				tabbedPaneGame.setEnabledAt(1, true);
+				tabbedPaneGame.setEnabledAt(0, false);
+				SQLHelper db = VerbindungHerstellen();
+				
+				PlayerLocation = db.queryToMap("SELECT * FROM `player_location` WHERE `F_m_spieler` = " + (daten.get(comboBoxLogin.getSelectedIndex()).get("ID")));
+				
+				if(PlayerLocation.size() < 1){					
+					db.execute("INSERT INTO `player_location` (`ID`, `F_m_spieler`, `F_citys`) VALUES (NULL, '" + (daten.get(comboBoxLogin.getSelectedIndex()).get("ID")) + "', '1')");		
+					PlayerLocation = db.queryToMap("SELECT * FROM `player_location` WHERE `F_m_spieler` = " + (daten.get(comboBoxLogin.getSelectedIndex()).get("ID")));
+				}
+				Locations = db.queryToMap("SELECT * FROM citys WHERE citys.ID = " + PlayerLocation.get(0).get("F_citys"));
+				String Location = Locations.get(0).get("City");
+				
+				textPaneMain.setText("You are in " + Location);	
+				
+				db.execute("UPDATE `m_spieler` SET `city` = '1' WHERE `m_spieler`.`ID` = " + (daten.get(comboBoxLogin.getSelectedIndex()).get("ID")));
+				
+				CommandsVorbereiten("city");
+				
+				db.close();
+				
+			}
+		});
+		panel_15.add(btnEinloggen, "cell 1 2");
+		
+		
+		tabbedPaneGame.addTab("   Main   ", null, panel_4, null);
+		tabbedPaneGame.setEnabledAt(1, false);
+		panel_4.setLayout(new MigLayout("", "[365.00px][grow]", "[327px,grow]"));
+		
+		JPanel panel_8 = new JPanel();
+		panel_4.add(panel_8, "cell 0 0,grow");
+		panel_8.setLayout(new MigLayout("", "[grow]", "[266.00,grow][]"));
+		
+		JPanel panel_10 = new JPanel();
+		panel_8.add(panel_10, "cell 0 0,grow");
+		panel_10.setLayout(new BorderLayout(0, 0));
+		textPaneMain.setEditable(false);
+		
+		
+		panel_10.add(textPaneMain, BorderLayout.CENTER);
+		
+		JPanel panel_11 = new JPanel();
+		panel_8.add(panel_11, "cell 0 1,grow");
+		panel_11.setLayout(new BorderLayout(0, 0));
+		
+		
+		panel_11.add(editorPaneMain, BorderLayout.CENTER);
+		
+		JPanel panel_9 = new JPanel();
+		panel_4.add(panel_9, "cell 1 0,grow");
+		panel_9.setLayout(new MigLayout("", "[grow]", "[grow]"));
+		
+		JPanel panel_14 = new JPanel();
+		panel_9.add(panel_14, "cell 0 0,grow");
+		panel_14.setLayout(new BorderLayout(0, 0));
+		listCommands.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				editorPaneMain.setText(editorPaneMain.getText() + listCommands.getSelectedValue() + " ");
+				editorPaneMain.requestFocus();
+			}
+		});
+		
+		
+		panel_14.add(listCommands, BorderLayout.CENTER);
+				
+		
+		tabbedPaneGame.addTab("   Fighting   ", null, panel_5, null);
+		tabbedPaneGame.setEnabledAt(2, false);
+		panel_5.setLayout(new MigLayout("", "[367.00,grow][130.00]", "[120.00][167.00,grow][grow]"));
+		
+		JPanel panel_12 = new JPanel();
+		panel_5.add(panel_12, "cell 0 0 1 2,grow");
+		panel_12.setLayout(new BorderLayout(0, 0));
+		
+		
+		panel_12.add(textPaneFight, BorderLayout.CENTER);
+		
+		JPanel panel_13 = new JPanel();
+		panel_5.add(panel_13, "cell 1 0,grow");
+		panel_13.setLayout(new BorderLayout(0, 0));
+		
+		
+		panel_13.add(lblEnemy_Img);
+		
+		JPanel panel_17 = new JPanel();
+		panel_5.add(panel_17, "cell 1 1 1 2,grow");
+		panel_17.setLayout(new BorderLayout(0, 0));
+		
+		JList listFightAttacks = new JList();
+		panel_17.add(listFightAttacks);
+		
+		JPanel panel_16 = new JPanel();
+		panel_5.add(panel_16, "cell 0 2,grow");
+		panel_16.setLayout(new BorderLayout(0, 0));
+		
+		panel_16.add(editorPaneFight);
+		
+		tabbedPaneGame.addTab("   Talking   ", null, panel_6, null);
+		tabbedPaneGame.setEnabledAt(3, false);
+		
+		tabbedPaneGame.addTab("   Inventory   ", null, panel_7, null);
+		tabbedPaneGame.setEnabledAt(4, false);
+		
+		JPanel panel_3 = new JPanel();
+		tabbedPaneMain.addTab("New tab", null, panel_3, null);
+		
+		iMapEditorMain.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), enter);
+		aMapEditorMain.put(enter, new AbstractAction(){
+					
+			@Override
+			public void actionPerformed(ActionEvent arg0)	{
+								
+				SQLHelper db = VerbindungHerstellen();
+				String[] command = editorPaneMain.getText().split("\\s+");
+				Fall = db.queryToMap("");
+				
+				switch (command[0]){
+				
+				case "TravelTo":	ArrayList<Map<String, String>> Reiseziel = db.queryToMap("SELECT * FROM `citys` WHERE `City` LIKE '" + command[1] + "'");
+									ArrayList<Map<String, String>> alterStandort = db.queryToMap("SELECT * FROM `player_location` WHERE `F_m_spieler` = " + (daten.get(comboBoxLogin.getSelectedIndex()).get("ID")) );
+									ArrayList<Map<String, String>> Standort = db.queryToMap("SELECT * FROM `citys` WHERE `ID` = '" + alterStandort.get(0).get("F_citys") + "'");
+									
+									int deltax = Integer.parseInt(Reiseziel.get(0).get("x-coordinate")) - Integer.parseInt(Standort.get(0).get("x-coordinate"));
+									int deltay = Integer.parseInt(Standort.get(0).get("y-coordinate")) - Integer.parseInt(Reiseziel.get(0).get("y-coordinate"));
+									
+									if(deltax < 0)
+										deltax = deltax * (-1);
+									
+									if(deltay < 0)
+										deltay = deltay * (-1);
+																							
+									try {
+									TimeUnit.SECONDS.sleep((deltax + deltay) / 10);
+									} catch (InterruptedException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+									}
+									
+									textPaneMain.setText("You arrived at " + Reiseziel.get(0).get("city") + " after your " + (deltax + deltay) + "km long journey");
+									
+									db.execute("UPDATE `player_location` SET `F_citys` = '" + Reiseziel.get(0).get("ID") + "' WHERE `player_location`.`ID` = " + alterStandort.get(0).get("ID"));
+									db.execute("UPDATE `m_spieler` SET `city` = '1' WHERE `m_spieler`.`ID` = " + (daten.get(comboBoxLogin.getSelectedIndex()).get("ID")));
+		
+									
+									break;
+									
+				default:			System.out.println("This command is not valid");
+									textPaneMain.setText(textPaneMain.getText() + "\nThis command is not valid");
+									break;
+				}
+				
+				
+				
+				
+				db.close();
+			}		
+		});
+		
+		
+		
+		iMapEditorFight.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), enter);
+		aMapEditorFight.put(enter, new AbstractAction(){
+					
+			@Override
+			public void actionPerformed(ActionEvent arg0)	{
+				
+					System.out.println("DEBUG");
+				}
+			});
+		
+		
+		Setup();
+			
+	}
+	
+	public void LadeSpieler() {
+		SQLHelper db = VerbindungHerstellen();
+				
+		// Alle Spieler auslesen
+		daten = db.queryToMap("SELECT * FROM `m_spieler`");
+		
+		// ComboBox leeren
+		comboBoxSpieler.removeAllItems();
+		
+		// Alle Spieler durchgehen und die Namen hinzufÃ¼gen
+		//for (int i = 0; i < daten.size(); i++) {
+		for (Map<String, String> element : daten) {
+			String name = element.get("Name");
+			comboBoxSpieler.addItem(name);
+			comboBoxLogin.addItem(name);
+		}
+		
+	
+		// Verbindung schlieÃŸen
+		db.close();
+	}
+	
+	public SQLHelper VerbindungHerstellen() {
+		return new SQLHelper("localhost/DB_RPG","root","");
+	}
+	
+	public void fight(){
+		
+		
+		
+	}
+	
+	public void CommandsVorbereiten(String fall){
+		SQLHelper db = VerbindungHerstellen();
+		
+		ArrayList<Map<String, String>> spieler = db.queryToMap("SELECT * FROM `commands`");
+		
+		DefaultListModel commands = new DefaultListModel();		
+		for(Map<String, String> element : spieler){		
+			commands.addElement(element.get("command"));
+		}
+		
+		listCommands.setModel(commands);
+	}
+	
+	public void CharEditorVorbereiten(){
+		
+		SQLHelper db = VerbindungHerstellen();
+		
+		newPlayerInfoStamm = db.queryToMap("SELECT * FROM `stamm`");
+		comboNewPlayerStamm.removeAllItems();
+		for(Map<String, String> element : newPlayerInfoStamm){
+			comboNewPlayerStamm.addItem(element.get("Stamm"));
+		}
+		
+		newPlayerInfoKlasse = db.queryToMap("SELECT * FROM `klassen`");
+		comboNewPlayerKlasse.removeAllItems();
+		for(Map<String, String> element : newPlayerInfoKlasse){
+			comboNewPlayerKlasse.addItem(element.get("Klasse"));
+		}
+		
+		newPlayerInfoBeruf = db.queryToMap("SELECT * FROM `beruf`");
+		comboNewPlayerBeruf.removeAllItems();
+		for(Map<String, String> element : newPlayerInfoBeruf){
+			comboNewPlayerBeruf.addItem(element.get("Beruf"));
+		}
+		
+		PlayerDeleteInfo = db.queryToMap("SELECT * FROM `m_spieler`");
+		comboPlayerDelete.removeAllItems();
+		for(Map<String, String> element : PlayerDeleteInfo){
+			comboPlayerDelete.addItem(element.get("Name"));
+		}
+		
+		
+		db.close();
+	}
+	
+	public void Setup(){
+		
+		LadeSpieler();
+		System.out.println("Spielerbögen geladen");	
+		
+		CharEditorVorbereiten();
+        System.out.println("Character Editor geladen");	
+        
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
